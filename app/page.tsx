@@ -167,6 +167,7 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loadingDocs, setLoadingDocs] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const LAST_DOC_KEY = `minimal-journal-last-doc-id-${userId}`;
 
@@ -506,8 +507,92 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-neutral-100 flex">
-      {/* Sidebar (hidden on mobile) */}
+    <div className="min-h-screen bg-neutral-900 text-neutral-100 flex flex-col md:flex-row">
+      {/* Mobile top bar */}
+      <div className="md:hidden flex items-center justify-between px-3 py-2 border-b border-neutral-800">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="text-xs px-2 py-1 rounded border border-neutral-700 text-neutral-200"
+        >
+          Files
+        </button>
+        <span className="text-[11px] text-neutral-500 truncate max-w-[60%]">
+          {selectedDoc?.title || "Untitled"}
+        </span>
+        <button
+          onClick={handleSignOut}
+          className="text-[11px] text-neutral-500"
+        >
+          sign out
+        </button>
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden bg-black/60"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <div
+            className="absolute left-0 top-0 bottom-0 w-64 bg-neutral-950 border-r border-neutral-800 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-10 flex items-center justify-between px-3 text-[11px] text-neutral-400 border-b border-neutral-800">
+              <span className="font-medium">documents</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-[11px] text-neutral-500 hover:text-neutral-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto text-sm">
+              {docs.map((doc) => (
+                <button
+                  key={doc.id}
+                  onClick={() => {
+                    setSelectedId(doc.id);
+                    setSidebarOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 flex items-center justify-between gap-2 border-b border-neutral-900 hover:bg-neutral-900 ${
+                    selectedId === doc.id ? "bg-neutral-900" : ""
+                  }`}
+                >
+                  <input
+                    className="bg-transparent text-xs outline-none flex-1"
+                    value={doc.title}
+                    onChange={(e) => handleTitleChange(doc.id, e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {docs.length > 1 && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDoc(doc.id);
+                      }}
+                      className="text-[10px] text-neutral-500 hover:text-red-400 cursor-pointer"
+                    >
+                      ×
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="border-t border-neutral-800 text-[10px] text-neutral-500 flex flex-col">
+              <div className="h-6 flex items-center justify-center px-2 truncate">
+                {userEmail}
+              </div>
+              <div className="h-7 flex items-center justify-center border-t border-neutral-800">
+                Ctrl+B / I · Ctrl+Shift+1/2/3 · Ctrl+0 · "#"+Space
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop sidebar */}
       <div className="hidden md:flex w-56 border-r border-neutral-800 bg-neutral-950 flex-col">
         <div className="h-10 flex items-center justify-between px-3 text-[11px] text-neutral-400 border-b border-neutral-800">
           <span className="font-medium">minimal journal</span>
