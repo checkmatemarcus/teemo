@@ -76,92 +76,6 @@ export default function Page() {
   return <Editor userId={user.id} userEmail={user.email} />;
 }
 
-function AuthCard() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    setErrorMsg(null);
-    setLoading(true);
-    try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) setErrorMsg(error.message);
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) setErrorMsg(error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-neutral-100">
-      <div className="w-full max-w-sm border border-neutral-800 rounded-lg p-6 bg-neutral-950">
-        <h1 className="text-xl font-semibold mb-4 text-center">Teemo</h1>
-
-        <div className="flex justify-center gap-4 text-xs mb-4">
-          <button
-            className={
-              mode === "login" ? "font-semibold text-sky-400" : "text-neutral-500"
-            }
-            onClick={() => setMode("login")}
-          >
-            login
-          </button>
-          <button
-            className={
-              mode === "signup" ? "font-semibold text-sky-400" : "text-neutral-500"
-            }
-            onClick={() => setMode("signup")}
-          >
-            sign up
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          <input
-            type="email"
-            placeholder="email"
-            className="w-full px-3 py-2 rounded bg-neutral-900 border border-neutral-700 text-sm outline-none focus:border-sky-500"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="password"
-            className="w-full px-3 py-2 rounded bg-neutral-900 border border-neutral-700 text-sm outline-none focus:border-sky-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          {errorMsg && (
-            <p className="text-xs text-red-400 whitespace-pre-line">{errorMsg}</p>
-          )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full py-2 rounded bg-sky-600 text-sm font-medium hover:bg-sky-500 transition disabled:opacity-60"
-          >
-            {loading ? "…" : mode === "login" ? "login" : "sign up"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -267,98 +181,89 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
     })();
   };
 
-  // Markdown-style heading: "#", "##", "###" + Space
-// Markdown-style heading: "#", "##", "###" + Space på en tom linje
-const applyMarkdownHeading = () => {
-  const sel = window.getSelection();
-  if (!sel || !sel.anchorNode) return false;
+  // Markdown-style heading: "#", "##", "###" + Space på en tom linje
+  const applyMarkdownHeading = () => {
+    const sel = window.getSelection();
+    if (!sel || !sel.anchorNode) return false;
 
-  const anchorNode = sel.anchorNode;
-  const parentElement =
-    anchorNode.nodeType === Node.TEXT_NODE
-      ? (anchorNode.parentElement as HTMLElement | null)
-      : (anchorNode as HTMLElement | null);
+    const anchorNode = sel.anchorNode;
+    const parentElement =
+      anchorNode.nodeType === Node.TEXT_NODE
+        ? (anchorNode.parentElement as HTMLElement | null)
+        : (anchorNode as HTMLElement | null);
 
-  if (!parentElement) return false;
+    if (!parentElement) return false;
 
-  const block = parentElement.closest(
-    "p, div, h1, h2, h3, li"
-  ) as HTMLElement | null;
-  if (!block) return false;
+    const block = parentElement.closest(
+      "p, div, h1, h2, h3, li"
+    ) as HTMLElement | null;
+    if (!block) return false;
 
-  const raw = block.textContent || "";
-  const text = raw.replace(/\u00a0/g, " ");
-  // f.eks "#" eller "##" eller "###" (muligens med space etter)
-  const match = text.match(/^(#+)\s*$/);
-  if (!match) return false;
+    const raw = block.textContent || "";
+    const text = raw.replace(/\u00a0/g, " ");
+    const match = text.match(/^(#+)\s*$/);
+    if (!match) return false;
 
-  const level = Math.min(match[1].length, 3); // 1–3
-  const tag = `H${level}` as const;
+    const level = Math.min(match[1].length, 3); // 1–3
+    const tag = `H${level}` as const;
 
-  // Gjør blokken til heading
-  // eslint-disable-next-line deprecation/deprecation
-  document.execCommand("formatBlock", false, tag);
+    // eslint-disable-next-line deprecation/deprecation
+    document.execCommand("formatBlock", false, tag);
 
-  const sel2 = window.getSelection();
-  if (!sel2 || !sel2.anchorNode) return true;
+    const sel2 = window.getSelection();
+    if (!sel2 || !sel2.anchorNode) return true;
 
-  const anchorNode2 = sel2.anchorNode;
-  const container =
-    anchorNode2.nodeType === Node.TEXT_NODE
-      ? (anchorNode2.parentElement as HTMLElement | null)
-      : (anchorNode2 as HTMLElement | null);
+    const anchorNode2 = sel2.anchorNode;
+    const container =
+      anchorNode2.nodeType === Node.TEXT_NODE
+        ? (anchorNode2.parentElement as HTMLElement | null)
+        : (anchorNode2 as HTMLElement | null);
 
-  const headingEl = container?.closest(tag.toLowerCase()) as HTMLElement | null;
-  if (!headingEl) return true;
+    const headingEl = container?.closest(tag.toLowerCase()) as HTMLElement | null;
+    if (!headingEl) return true;
 
-  // I stedet for å gjøre den helt tom (som ser ut som "den forsvant"),
-  // beholder vi én non-breaking space så du ser at linja fortsatt er der
-  headingEl.innerHTML = "&nbsp;";
+    headingEl.innerHTML = "&nbsp;";
 
-  // Flytt caret til starten av headingen
-  const range = document.createRange();
-  range.selectNodeContents(headingEl);
-  range.collapse(true);
-  sel2.removeAllRanges();
-  sel2.addRange(range);
+    const range = document.createRange();
+    range.selectNodeContents(headingEl);
+    range.collapse(true);
+    sel2.removeAllRanges();
+    sel2.addRange(range);
 
-  return true;
-};
-
+    return true;
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const key = e.key.toLowerCase();
 
-    // If user presses Enter while inside a heading, create a new paragraph below
-if (e.key === "Enter") {
-  const sel = window.getSelection();
-  if (sel && sel.anchorNode) {
-    let node: Node | null = sel.anchorNode;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    // Enter inside heading -> new paragraph below
+    if (e.key === "Enter") {
+      const sel = window.getSelection();
+      if (sel && sel.anchorNode) {
+        let node: Node | null = sel.anchorNode;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
 
-    const heading = (node as HTMLElement)?.closest("h1, h2, h3");
-    if (heading) {
-      e.preventDefault();
-      
-      // Insert a normal paragraph after the heading
-      const p = document.createElement("p");
-      p.innerHTML = "<br>"; // empty line with caret
-      heading.insertAdjacentElement("afterend", p);
+        const heading = (node as HTMLElement)?.closest("h1, h2, h3");
+        if (heading) {
+          e.preventDefault();
 
-      // Move the caret into the new paragraph
-      const range = document.createRange();
-      range.setStart(p, 0);
-      range.collapse(true);
+          const p = document.createElement("p");
+          p.innerHTML = "<br>";
+          heading.insertAdjacentElement("afterend", p);
 
-      const sel2 = window.getSelection();
-      sel2?.removeAllRanges();
-      sel2?.addRange(range);
+          const range = document.createRange();
+          range.setStart(p, 0);
+          range.collapse(true);
 
-      handleInput();
-      return;
+          const sel2 = window.getSelection();
+          sel2?.removeAllRanges();
+          sel2?.addRange(range);
+
+          handleInput();
+          return;
+        }
+      }
     }
-  }
-}
 
     // Markdown-style: "#"/"##"/"###" + Space på tom linje
     if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === " ") {
@@ -506,7 +411,7 @@ if (e.key === "Enter") {
     URL.revokeObjectURL(url);
   };
 
- if (loadingDocs) {
+  if (loadingDocs) {
     return (
       <div className="min-h-screen bg-neutral-900 text-neutral-100 flex items-center justify-center">
         <span className="text-xs text-neutral-400">Loading documents…</span>
@@ -516,8 +421,8 @@ if (e.key === "Enter") {
 
   return (
     <div className="min-h-screen bg-neutral-900 text-neutral-100 flex">
-      {/* Sidebar */}
-      <div className="w-56 border-r border-neutral-800 bg-neutral-950 flex flex-col">
+      {/* Sidebar (hidden on mobile) */}
+      <div className="hidden md:flex w-56 border-r border-neutral-800 bg-neutral-950 flex-col">
         <div className="h-10 flex items-center justify-between px-3 text-[11px] text-neutral-400 border-b border-neutral-800">
           <span className="font-medium">minimal journal</span>
           <button
@@ -582,8 +487,8 @@ if (e.key === "Enter") {
       </div>
 
       {/* Editor */}
-      <div className="flex-1 flex justify-center py-10">
-        <div className="w-full max-w-3xl px-4">
+      <div className="flex-1 flex justify-center py-6 md:py-10">
+        <div className="w-full max-w-3xl px-2 md:px-4">
           <div
             ref={editorRef}
             contentEditable
@@ -596,8 +501,8 @@ if (e.key === "Enter") {
               bg-neutral-900
               border border-neutral-800
               rounded-xl
-              px-8
-              py-16
+              px-4 md:px-8
+              py-8 md:py-16
               focus:outline-none
               prose prose-invert
               max-w-none
