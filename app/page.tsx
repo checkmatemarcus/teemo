@@ -657,7 +657,7 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
             </button>
           </div>
           <div className="h-7 flex items-center justify-center border-t border-neutral-800">
-            Ctrl+B / I · Ctrl+Shift+1/2/3 · Ctrl+0 · "#"+Space
+            glizzy?
           </div>
         </div>
       </div>
