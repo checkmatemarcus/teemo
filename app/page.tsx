@@ -488,7 +488,7 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
     const blob = new Blob([plainText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const safeTitle =
-      selectedDoc.title.trim().replace(/[^\w\-]+/g, "_") || "journal";
+      selectedDoc?.title.trim().replace(/[^\w\-]+/g, "_") || "journal";
     const a = document.createElement("a");
     a.href = url;
     a.download = `${safeTitle}.txt`;
@@ -538,14 +538,24 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="h-10 flex items-center justify-between px-3 text-[11px] text-neutral-400 border-b border-neutral-800">
-              <span className="font-medium">documents</span>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="text-[11px] text-neutral-500 hover:text-neutral-200"
-              >
-                ✕
-              </button>
-            </div>
+  <button
+    onClick={async () => {
+      await handleNewDoc();
+    }}
+    className="px-2 py-1 rounded border border-neutral-700 hover:border-sky-500 text-neutral-300"
+  >
+    New
+  </button>
+
+  <span className="font-medium ml-2 flex-1 text-center">documents</span>
+
+  <button
+    onClick={() => setSidebarOpen(false)}
+    className="text-[11px] text-neutral-500 hover:text-neutral-200"
+  >
+    ✕
+  </button>
+</div>
 
             <div className="flex-1 overflow-y-auto text-sm">
               {docs.map((doc) => (
@@ -559,12 +569,9 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
                     selectedId === doc.id ? "bg-neutral-900" : ""
                   }`}
                 >
-                  <input
-                    className="bg-transparent text-xs outline-none flex-1"
-                    value={doc.title}
-                    onChange={(e) => handleTitleChange(doc.id, e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  <span className="text-xs flex-1 truncate">
+                    {doc.title || "Untitled"}
+                  </span>
                   {docs.length > 1 && (
                     <span
                       onClick={(e) => {
@@ -613,11 +620,9 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
                 selectedId === doc.id ? "bg-neutral-900" : ""
               }`}
             >
-              <input
-                className="bg-transparent text-xs outline-none flex-1"
-                value={doc.title}
-                onChange={(e) => handleTitleChange(doc.id, e.target.value)}
-              />
+              <span className="text-xs flex-1 truncate">
+                {doc.title || "Untitled"}
+              </span>
               {docs.length > 1 && (
                 <span
                   onClick={(e) => {
@@ -660,28 +665,36 @@ function Editor({ userId, userEmail }: { userId: string; userEmail: string }) {
       {/* Editor */}
       <div className="flex-1 flex justify-center py-6 md:py-10">
         <div className="w-full max-w-3xl px-2 md:px-4">
-          <div
-            ref={editorRef}
-            contentEditable
-            spellCheck={false}
-            onInput={handleInput}
-            onKeyDown={handleKeyDown}
-            dir="ltr"
-            className="
-              min-h-[70vh]
-              bg-neutral-900
-              border border-neutral-800
-              rounded-xl
-              px-4 md:px-8
-              py-8 md:py-16
-              focus:outline-none
-              prose prose-invert
-              max-w-none
-              text-left
-              break-words
-              overflow-hidden
-            "
-          />
+          <div className="min-h-[70vh] bg-neutral-900 border border-neutral-800 rounded-xl px-4 md:px-8 py-6 md:py-10 flex flex-col">
+            {/* Title input on top of each document */}
+            <input
+              className="bg-transparent text-sm md:text-base font-medium mb-4 outline-none border-b border-neutral-800/60 pb-1"
+              value={selectedDoc?.title ?? ""}
+              onChange={(e) =>
+                selectedDoc && handleTitleChange(selectedDoc.id, e.target.value)
+              }
+              placeholder="Untitled"
+            />
+
+            {/* Editable content area */}
+            <div
+              ref={editorRef}
+              contentEditable
+              spellCheck={false}
+              onInput={handleInput}
+              onKeyDown={handleKeyDown}
+              dir="ltr"
+              className="
+                flex-1
+                mt-2
+                prose prose-invert
+                max-w-none
+                text-left
+                break-words
+                focus:outline-none
+              "
+            />
+          </div>
         </div>
       </div>
     </div>
